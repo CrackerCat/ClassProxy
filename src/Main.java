@@ -1,6 +1,5 @@
 import com.bug.proxy.Proxy;
 import com.bug.proxy.ProxyCallback;
-import java.lang.reflect.Method;
 
 public class Main
 {
@@ -12,16 +11,36 @@ public class Main
         {
             Proxy proxy=new Proxy();
             proxy.setSuperClass(MyObject.class);
-            proxy.setCallback(new ProxyCallback()
+            //proxy.setRawObject(object);
+            /*proxy.setCallback(new ProxyCallback()
+             {
+             @Override
+             public Object call(Object proxyObject, Method method, Object[] args)
+             {
+             if (method.getName().equals("getMsg"))
+             {
+             return "fuck♂";
+             }
+             return Proxy.callSuper(proxyObject, method, args);
+             }
+             });*/
+            proxy.setCallback(new ProxyCallback.Hook()
                 {
                     @Override
-                    public Object call(Object proxyObject, Method method, Object[] args)
+                    protected void beforeHookedMethod(final Param param) throws Throwable
                     {
-                        if (method.getName().equals("getMsg"))
+                        if (param.method.getName().equals("getMsg"))
                         {
-                            return "fuck♂";
+                            param.setObjectExtra("value", "fuck♂");
                         }
-                        return Proxy.callSuper(proxyObject, method, args);
+                    }
+                    @Override
+                    protected void afterHookedMethod(final Param param) throws Throwable
+                    {
+                        if (param.method.getName().equals("getMsg"))
+                        {
+                            param.setResult(param.getObjectExtra("value"));
+                        }
                     }
                 });
             object = (MyObject)proxy.create();
